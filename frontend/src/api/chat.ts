@@ -1,13 +1,14 @@
-type StreamEvent =
-  | { content: string }
-  | { error: string }
-  | { done: true };
+import type { StreamEvent, ToolEvent } from "../types";
+
+export type ChatStreamItem =
+  | { kind: "text"; text: string }
+  | { kind: "tool"; event: ToolEvent };
 
 export async function* streamChat(
   message: string,
   threadId: string,
   signal?: AbortSignal,
-): AsyncGenerator<string> {
+): AsyncGenerator<ChatStreamItem> {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -36,9 +37,15 @@ export async function* streamChat(
       if (!line.startsWith("data:")) continue;
       const payload = JSON.parse(line.slice(5).trim()) as StreamEvent;
 
-      if ("error" in payload) throw new Error(payload.error);
-      if ("done" in payload) return;
-      if ("content" in payload) yield payload.content;
+      if (payload.type === "error") throw new Error(payload.error);
+      if (payload.type === "done") return;
+      if (payload.type === "content") {
+        yield { kind: "text", text: payload.content };
+        continue;
+      }
+      if (payload.type === "tool") {
+        yield { kind: "tool", event: payload.result };
+      }
     }
   }
 }

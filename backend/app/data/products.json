@@ -1,0 +1,110 @@
+[
+  {
+    "id": "P001",
+    "name": "ベーシック白Tシャツ",
+    "description": "やわらかいコットン100%のクルーネックTシャツ。",
+    "price": 2980,
+    "category": "tops",
+    "stock": 30,
+    "image_url": "https://placehold.co/200x200?text=White+Tee"
+  },
+  {
+    "id": "P002",
+    "name": "ストライプ長袖Tシャツ",
+    "description": "ボーダー柄の長袖カットソー。",
+    "price": 3980,
+    "category": "tops",
+    "stock": 20,
+    "image_url": "https://placehold.co/200x200?text=Stripe+Tee"
+  },
+  {
+    "id": "P003",
+    "name": "ネイビーパーカー",
+    "description": "裏起毛のプルオーバーパーカー。",
+    "price": 6980,
+    "category": "tops",
+    "stock": 15,
+    "image_url": "https://placehold.co/200x200?text=Navy+Hoodie"
+  },
+  {
+    "id": "P004",
+    "name": "デニムパンツ",
+    "description": "ストレートシルエットのインディゴデニム。",
+    "price": 7980,
+    "category": "bottoms",
+    "stock": 18,
+    "image_url": "https://placehold.co/200x200?text=Denim"
+  },
+  {
+    "id": "P005",
+    "name": "チノパンツ",
+    "description": "ベージュの定番チノ。",
+    "price": 5980,
+    "category": "bottoms",
+    "stock": 22,
+    "image_url": "https://placehold.co/200x200?text=Chino"
+  },
+  {
+    "id": "P006",
+    "name": "ジョガーパンツ",
+    "description": "リラックスフィットのスウェットパンツ。",
+    "price": 4980,
+    "category": "bottoms",
+    "stock": 25,
+    "image_url": "https://placehold.co/200x200?text=Jogger"
+  },
+  {
+    "id": "P007",
+    "name": "白スニーカー",
+    "description": "ローカットの定番ホワイトスニーカー。",
+    "price": 8980,
+    "category": "shoes",
+    "stock": 12,
+    "image_url": "https://placehold.co/200x200?text=White+Sneaker"
+  },
+  {
+    "id": "P008",
+    "name": "黒レザーシューズ",
+    "description": "革靴ライクなドレスシューズ。",
+    "price": 12800,
+    "category": "shoes",
+    "stock": 8,
+    "image_url": "https://placehold.co/200x200?text=Leather"
+  },
+  {
+    "id": "P009",
+    "name": "ランニングシューズ",
+    "description": "クッション性の高いトレーニングシューズ。",
+    "price": 10800,
+    "category": "shoes",
+    "stock": 14,
+    "image_url": "https://placehold.co/200x200?text=Running"
+  },
+  {
+    "id": "P010",
+    "name": "キャンバストート",
+    "description": "A4対応の大きめキャンバストートバッグ。",
+    "price": 3480,
+    "category": "accessories",
+    "stock": 35,
+    "image_url": "https://placehold.co/200x200?text=Tote"
+  },
+  {
+    "id": "P011",
+    "name": "レザーベルト",
+    "description": "黒のシンプルレザーベルト。",
+    "price": 4480,
+    "category": "accessories",
+    "stock": 20,
+    "image_url": "https://placehold.co/200x200?text=Belt"
+  },
+  {
+    "id": "P012",
+    "name": "ニットキャップ",
+    "description": "ウール混の定番ビーニー。",
+    "price": 2480,
+    "category": "accessories",
+    "stock": 28,
+    "image_url": "https://placehold.co/200x200?text=Beanie"
+  }
+]
