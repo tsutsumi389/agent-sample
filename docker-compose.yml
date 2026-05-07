@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: ./backend
+    container_name: agent-sample-backend
+    ports:
+      - "8000:8000"
+    environment:
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      MODEL_NAME: ${MODEL_NAME:-gemma4}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend/app:/app/app
+    networks: [app-net]
+
+  frontend:
+    build: ./frontend
+    container_name: agent-sample-frontend
+    ports:
+      - "5173:5173"
+    depends_on: [backend]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks: [app-net]
+
+networks:
+  app-net:
+    driver: bridge
