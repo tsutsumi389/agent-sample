@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { streamChat } from "../api/chat";
+import type { ToolEvent } from "../types";
+import { ToolEventView } from "./ToolEventView";
 
 type Role = "user" | "assistant";
-type Message = { role: Role; content: string };
+
+type Message = {
+  role: Role;
+  content: string;
+  toolEvents?: ToolEvent[];
+};
 
 export function ChatUI() {
   const [threadId, setThreadId] = useState(() => crypto.randomUUID());
@@ -26,15 +33,25 @@ export function ChatUI() {
     setMessages((prev) => [
       ...prev,
       { role: "user", content: text },
-      { role: "assistant", content: "" },
+      { role: "assistant", content: "", toolEvents: [] },
     ]);
 
     try {
-      for await (const chunk of streamChat(text, threadId)) {
+      for await (const item of streamChat(text, threadId)) {
         setMessages((prev) => {
           const next = prev.slice();
           const last = next[next.length - 1];
-          next[next.length - 1] = { ...last, content: last.content + chunk };
+          if (item.kind === "text") {
+            next[next.length - 1] = {
+              ...last,
+              content: last.content + item.text,
+            };
+          } else {
+            next[next.length - 1] = {
+              ...last,
+              toolEvents: [...(last.toolEvents ?? []), item.event],
+            };
+          }
           return next;
         });
       }
@@ -62,18 +79,39 @@ export function ChatUI() {
 
       <div className="chat-list" ref={listRef}>
         {messages.length === 0 && (
-          <div className="chat-empty">メッセージを入力して送信してください。</div>
-        )}
-        {messages.map((m, i) => (
-          <div key={i} className={`chat-bubble chat-${m.role}`}>
-            <div className="chat-role">{m.role === "user" ? "あなた" : "AI"}</div>
-            <div className="chat-content">
-              {m.content || (m.role === "assistant" && streaming && i === messages.length - 1
-                ? "…"
-                : "")}
-            </div>
+          <div className="chat-empty">
+            「白いTシャツを探して」など、ECサイトでの買い物を試してみてください。
           </div>
-        ))}
+        )}
+        {messages.map((m, i) => {
+          const isLast = i === messages.length - 1;
+          const showPlaceholder =
+            m.role === "assistant" &&
+            !m.content &&
+            (m.toolEvents?.length ?? 0) === 0 &&
+            streaming &&
+            isLast;
+          return (
+            <div key={i} className={`chat-bubble chat-${m.role}`}>
+              <div className="chat-role">{m.role === "user" ? "あなた" : "AI"}</div>
+              {(m.content || showPlaceholder) && (
+                <div className="chat-content">
+                  {m.content || (showPlaceholder ? "…" : "")}
+                </div>
+              )}
+              {m.toolEvents && m.toolEvents.length > 0 && (
+                <div className="chat-tool-events">
+                  {m.toolEvents.map((te, j) => (
+                    <div className="tool-event-block" key={j}>
+                      <div className="tool-event-name">[{te.name}]</div>
+                      <ToolEventView event={te} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {error && <div className="chat-error">エラー: {error}</div>}

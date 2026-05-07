@@ -7,6 +7,7 @@ services:
     environment:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       MODEL_NAME: ${MODEL_NAME:-gemma4}
+      USE_TOOL_FALLBACK: ${USE_TOOL_FALLBACK:-auto}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
