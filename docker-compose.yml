@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: agent-sample-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agent}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agent}
+      POSTGRES_DB: ${POSTGRES_DB:-agent}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agent} -d ${POSTGRES_DB:-agent}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [app-net]
+
   backend:
     build: ./backend
     container_name: agent-sample-backend
@@ -8,10 +26,16 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       MODEL_NAME: ${MODEL_NAME:-gemma4}
       USE_TOOL_FALLBACK: ${USE_TOOL_FALLBACK:-auto}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://agent:agent@postgres:5432/agent}
+      DB_POOL_MIN: ${DB_POOL_MIN:-1}
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./backend/app:/app/app
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks: [app-net]
 
   frontend:
@@ -24,6 +48,9 @@ services:
       - ./frontend:/app
       - /app/node_modules
     networks: [app-net]
+
+volumes:
+  pgdata:
 
 networks:
   app-net:

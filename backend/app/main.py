@@ -1,17 +1,43 @@
 import json
 import logging
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from langchain_core.messages import HumanMessage
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from psycopg_pool import AsyncConnectionPool
 
-from app.agent import MODEL_NAME, OLLAMA_BASE_URL, graph
+from app.agent import MODEL_NAME, OLLAMA_BASE_URL, build_graph
 from app.schemas import ChatRequest
+from app.settings import settings
 
 logger = logging.getLogger("main")
 
-app = FastAPI(title="agent-sample backend")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    pool = AsyncConnectionPool(
+        conninfo=settings.database_url,
+        min_size=settings.db_pool_min,
+        max_size=settings.db_pool_max,
+        kwargs={"autocommit": True, "prepare_threshold": 0},
+        open=False,
+    )
+    await pool.open()
+    saver = AsyncPostgresSaver(pool)
+    await saver.setup()
+    app.state.graph = build_graph(saver)
+    app.state.pool = pool
+    logger.info("checkpointer ready (postgres)")
+    try:
+        yield
+    finally:
+        await pool.close()
+
+
+app = FastAPI(title="agent-sample backend", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,7 +69,8 @@ def _extract_tool_payload(output) -> dict | None:
 
 
 @app.post("/api/chat")
-async def chat(req: ChatRequest) -> StreamingResponse:
+async def chat(req: ChatRequest, request: Request) -> StreamingResponse:
+    graph = request.app.state.graph
     config = {
         "configurable": {"thread_id": req.thread_id},
         "recursion_limit": 12,
@@ -58,7 +85,6 @@ async def chat(req: ChatRequest) -> StreamingResponse:
                 node = metadata.get("langgraph_node")
 
                 if kind == "on_chat_model_stream":
-                    # 最終応答のみをユーザーへストリームする(agent 思考中のテキストは抑制)。
                     if node not in (None, "final_responder"):
                         continue
                     chunk = event["data"]["chunk"]
