@@ -3,16 +3,15 @@ from __future__ import annotations
 import inspect
 import json
 import logging
-import os
 import re
 from typing import Literal
 
 from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
 from langchain_ollama import ChatOllama
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
 
+from app.settings import settings
 from app.state import ECState
 from app.tools import ALL_TOOLS
 
@@ -20,9 +19,9 @@ _TOOLS_BY_NAME = {t.name: t for t in ALL_TOOLS}
 
 logger = logging.getLogger("agent")
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
-MODEL_NAME = os.getenv("MODEL_NAME", "gemma4")
-USE_TOOL_FALLBACK = os.getenv("USE_TOOL_FALLBACK", "auto").lower()
+OLLAMA_BASE_URL = settings.ollama_base_url
+MODEL_NAME = settings.model_name
+USE_TOOL_FALLBACK = settings.use_tool_fallback.lower()
 
 
 SYSTEM_AGENT = """あなたは仮想ECサイトのショッピングアシスタントです。
@@ -224,7 +223,7 @@ def route_after_agent(state: ECState) -> Literal["tools", "final_responder"]:
     return "final_responder"
 
 
-def build_graph():
+def build_graph(checkpointer):
     builder = StateGraph(ECState)
     builder.add_node("agent", agent_node)
     builder.add_node("tools", tool_node)
@@ -239,7 +238,4 @@ def build_graph():
     builder.add_edge("tools", "agent")
     builder.add_edge("final_responder", END)
 
-    return builder.compile(checkpointer=MemorySaver())
-
-
-graph = build_graph()
+    return builder.compile(checkpointer=checkpointer)
