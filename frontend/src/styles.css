@@ -395,3 +395,45 @@ body {
   padding: 4px 8px;
   text-align: left;
 }
+
+.typing-indicator {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6b7280;
+  opacity: 0.3;
+  animation: typing-pulse 1.2s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing-pulse {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-indicator span {
+    animation: none;
+    opacity: 0.6;
+  }
+}

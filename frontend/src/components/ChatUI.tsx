@@ -96,7 +96,19 @@ export function ChatUI() {
               <div className="chat-role">{m.role === "user" ? "あなた" : "AI"}</div>
               {(m.content || showPlaceholder) && (
                 <div className="chat-content">
-                  {m.content || (showPlaceholder ? "…" : "")}
+                  {m.content ? (
+                    m.content
+                  ) : showPlaceholder ? (
+                    <span
+                      className="typing-indicator"
+                      aria-label="生成中"
+                      role="status"
+                    >
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                  ) : null}
                 </div>
               )}
               {m.toolEvents && m.toolEvents.length > 0 && (
