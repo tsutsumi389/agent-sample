@@ -4,3 +4,4 @@ backend/.venv
 **/node_modules
 **/dist
 .DS_Store
+**/tsconfig.tsbuildinfo
