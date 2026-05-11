@@ -143,11 +143,16 @@ body {
 
 .chat-input textarea {
   flex: 1;
-  resize: vertical;
+  resize: none;
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 8px 10px;
   font: inherit;
+  line-height: 1.5;
+  min-height: 52px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .chat-input button {

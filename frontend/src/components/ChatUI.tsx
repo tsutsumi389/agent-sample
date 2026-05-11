@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { streamChat } from "../api/chat";
@@ -23,12 +23,20 @@ export function ChatUI() {
   const [error, setError] = useState<string | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const listRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!isAtBottom) return;
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages, isAtBottom]);
+
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [input]);
 
   function handleScroll() {
     const el = listRef.current;
@@ -191,6 +199,7 @@ export function ChatUI() {
         }}
       >
         <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -205,7 +214,6 @@ export function ChatUI() {
             }
           }}
           placeholder="メッセージを入力 (Enter で送信 / Shift+Enter で改行)"
-          rows={2}
         />
         <button
           type={streaming ? "button" : "submit"}
