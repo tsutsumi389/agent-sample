@@ -24,28 +24,37 @@ export async function* streamChat(
   const decoder = new TextDecoder();
   let buf = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) return;
-    buf += decoder.decode(value, { stream: true });
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      buf += decoder.decode(value, { stream: true });
 
-    const events = buf.split("\n\n");
-    buf = events.pop() ?? "";
+      const events = buf.split("\n\n");
+      buf = events.pop() ?? "";
 
-    for (const raw of events) {
-      const line = raw.trim();
-      if (!line.startsWith("data:")) continue;
-      const payload = JSON.parse(line.slice(5).trim()) as StreamEvent;
+      for (const raw of events) {
+        const line = raw.trim();
+        if (!line.startsWith("data:")) continue;
+        let payload: StreamEvent;
+        try {
+          payload = JSON.parse(line.slice(5).trim()) as StreamEvent;
+        } catch {
+          continue;
+        }
 
-      if (payload.type === "error") throw new Error(payload.error);
-      if (payload.type === "done") return;
-      if (payload.type === "content") {
-        yield { kind: "text", text: payload.content };
-        continue;
-      }
-      if (payload.type === "tool") {
-        yield { kind: "tool", event: payload.result };
+        if (payload.type === "error") throw new Error(payload.error);
+        if (payload.type === "done") return;
+        if (payload.type === "content") {
+          yield { kind: "text", text: payload.content };
+          continue;
+        }
+        if (payload.type === "tool") {
+          yield { kind: "tool", event: payload.result };
+        }
       }
     }
+  } finally {
+    reader.releaseLock();
   }
 }

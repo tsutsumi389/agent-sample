@@ -3,6 +3,11 @@ import { CartView } from "./CartView";
 import { OrderSummary } from "./OrderSummary";
 import { ProductCardList } from "./ProductCard";
 
+const CART_TITLE: Record<"add_to_cart" | "remove_from_cart", string> = {
+  add_to_cart: "カート(追加後)",
+  remove_from_cart: "カート(削除後)",
+};
+
 export function ToolEventView({ event }: { event: ToolEvent }) {
   switch (event.name) {
     case "search_products":
@@ -26,7 +31,7 @@ export function ToolEventView({ event }: { event: ToolEvent }) {
         <CartView
           cart={event.data.cart ?? []}
           total={event.data.total ?? 0}
-          title={event.name === "add_to_cart" ? "カート(追加後)" : "カート(削除後)"}
+          title={CART_TITLE[event.name]}
         />
       );
     }
@@ -42,5 +47,9 @@ export function ToolEventView({ event }: { event: ToolEvent }) {
         return <div className="tool-error">{event.data.reason ?? "注文が見つかりません。"}</div>;
       }
       return <OrderSummary order={event.data.order} />;
+
+    default:
+      event satisfies never;
+      return null;
   }
 }

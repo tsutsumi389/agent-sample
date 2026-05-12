@@ -1,4 +1,5 @@
 import type { CartItem } from "../types";
+import { formatJPY } from "../utils/format";
 
 export function CartView({
   cart,
@@ -31,16 +32,16 @@ export function CartView({
                 <span className="cart-product-name">{item.name}</span>
                 <span className="cart-product-id">{item.product_id}</span>
               </td>
-              <td>¥{item.unit_price.toLocaleString()}</td>
+              <td>{formatJPY(item.unit_price)}</td>
               <td>{item.quantity}</td>
-              <td>¥{item.subtotal.toLocaleString()}</td>
+              <td>{formatJPY(item.subtotal)}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr>
             <td colSpan={3}>合計</td>
-            <td>¥{total.toLocaleString()}</td>
+            <td>{formatJPY(total)}</td>
           </tr>
         </tfoot>
       </table>

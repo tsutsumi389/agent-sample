@@ -1,6 +1,8 @@
 :root {
   color-scheme: light dark;
   font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans JP", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", monospace;
+  --color-accent: #2f6fed;
 }
 
 * {
@@ -80,7 +82,7 @@ body {
 
 .chat-thread {
   color: #999;
-  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-family: var(--font-mono);
 }
 
 .chat-list {
@@ -109,7 +111,7 @@ body {
 
 .chat-user {
   align-self: flex-end;
-  background: #2f6fed;
+  background: var(--color-accent);
   color: #fff;
 }
 
@@ -159,7 +161,7 @@ body {
   padding: 0 16px;
   border: none;
   border-radius: 8px;
-  background: #2f6fed;
+  background: var(--color-accent);
   color: #fff;
   font-weight: 600;
   cursor: pointer;
@@ -191,7 +193,7 @@ body {
 .tool-event-name {
   font-size: 11px;
   color: #6b7280;
-  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-family: var(--font-mono);
   margin-bottom: 6px;
 }
 
@@ -240,7 +242,7 @@ body {
 .product-id {
   font-size: 10px;
   color: #888;
-  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-family: var(--font-mono);
 }
 
 .product-name {
@@ -265,7 +267,7 @@ body {
 .product-price {
   font-size: 13px;
   font-weight: 700;
-  color: #2f6fed;
+  color: var(--color-accent);
 }
 
 .product-stock,
@@ -314,7 +316,7 @@ body {
 }
 
 .cart-table tfoot td:last-child {
-  color: #2f6fed;
+  color: var(--color-accent);
 }
 
 .cart-product-name {
@@ -325,7 +327,7 @@ body {
   display: block;
   font-size: 10px;
   color: #888;
-  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-family: var(--font-mono);
 }
 
 .order-summary {
@@ -341,10 +343,10 @@ body {
 }
 
 .order-id {
-  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-family: var(--font-mono);
   font-weight: 700;
   font-size: 14px;
-  color: #2f6fed;
+  color: var(--color-accent);
 }
 
 .order-status {
@@ -386,7 +388,7 @@ body {
 
 .order-total {
   font-weight: 700;
-  color: #2f6fed;
+  color: var(--color-accent);
 }
 
 .order-items {
@@ -493,7 +495,7 @@ body {
   background: rgba(0, 0, 0, 0.06);
   padding: 1px 4px;
   border-radius: 4px;
-  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-family: var(--font-mono);
   font-size: 0.9em;
 }
 
@@ -514,7 +516,7 @@ body {
 }
 
 .markdown-body a {
-  color: #2f6fed;
+  color: var(--color-accent);
   text-decoration: underline;
 }
 
