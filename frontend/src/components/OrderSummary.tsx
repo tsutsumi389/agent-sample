@@ -1,4 +1,5 @@
 import type { Order } from "../types";
+import { formatJPY } from "../utils/format";
 
 const STATUS_LABEL: Record<Order["status"], string> = {
   pending: "保留中",
@@ -20,7 +21,7 @@ export function OrderSummary({ order }: { order: Order }) {
       <div className="order-meta">
         <div>
           <span className="order-label">合計:</span>
-          <span className="order-total">¥{order.total.toLocaleString()}</span>
+          <span className="order-total">{formatJPY(order.total)}</span>
         </div>
         <div>
           <span className="order-label">支払:</span>
@@ -44,7 +45,7 @@ export function OrderSummary({ order }: { order: Order }) {
             <tr key={item.product_id}>
               <td>{item.name}</td>
               <td>{item.quantity}</td>
-              <td>¥{item.subtotal.toLocaleString()}</td>
+              <td>{formatJPY(item.subtotal)}</td>
             </tr>
           ))}
         </tbody>

@@ -1,4 +1,5 @@
 import type { Product } from "../types";
+import { formatJPY } from "../utils/format";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
@@ -9,7 +10,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="product-name">{product.name}</div>
         <div className="product-desc">{product.description}</div>
         <div className="product-meta">
-          <span className="product-price">¥{product.price.toLocaleString()}</span>
+          <span className="product-price">{formatJPY(product.price)}</span>
           <span className="product-stock">在庫{product.stock}</span>
           <span className="product-category">{product.category}</span>
         </div>

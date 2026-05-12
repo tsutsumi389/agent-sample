@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { streamChat } from "../api/chat";
@@ -8,6 +8,7 @@ import { ToolEventView } from "./ToolEventView";
 type Role = "user" | "assistant";
 
 type Message = {
+  id: string;
   role: Role;
   content: string;
   toolEvents?: ToolEvent[];
@@ -26,7 +27,7 @@ export function ChatUI() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isAtBottom) return;
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
   }, [messages, isAtBottom]);
@@ -37,6 +38,8 @@ export function ChatUI() {
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight}px`;
   }, [input]);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   function handleScroll() {
     const el = listRef.current;
@@ -65,27 +68,19 @@ export function ChatUI() {
     setIsAtBottom(true);
     setMessages((prev) => [
       ...prev,
-      { role: "user", content: text },
-      { role: "assistant", content: "", toolEvents: [] },
+      { id: crypto.randomUUID(), role: "user", content: text },
+      { id: crypto.randomUUID(), role: "assistant", content: "", toolEvents: [] },
     ]);
 
     try {
       for await (const item of streamChat(text, threadId, controller.signal)) {
         setMessages((prev) => {
-          const next = prev.slice();
-          const last = next[next.length - 1];
-          if (item.kind === "text") {
-            next[next.length - 1] = {
-              ...last,
-              content: last.content + item.text,
-            };
-          } else {
-            next[next.length - 1] = {
-              ...last,
-              toolEvents: [...(last.toolEvents ?? []), item.event],
-            };
-          }
-          return next;
+          const last = prev[prev.length - 1];
+          const patch: Partial<Message> =
+            item.kind === "text"
+              ? { content: last.content + item.text }
+              : { toolEvents: [...(last.toolEvents ?? []), item.event] };
+          return [...prev.slice(0, -1), { ...last, ...patch }];
         });
       }
     } catch (err) {
@@ -127,55 +122,19 @@ export function ChatUI() {
             「白いTシャツを探して」など、ECサイトでの買い物を試してみてください。
           </div>
         )}
-        {messages.map((m, i) => {
-          const isLast = i === messages.length - 1;
-          const showPlaceholder =
-            m.role === "assistant" &&
-            !m.content &&
-            (m.toolEvents?.length ?? 0) === 0 &&
-            streaming &&
-            isLast;
-          return (
-            <div key={i} className={`chat-bubble chat-${m.role}`}>
-              <div className="chat-role">{m.role === "user" ? "あなた" : "AI"}</div>
-              {(m.content || showPlaceholder) && (
-                <div className="chat-content">
-                  {m.content ? (
-                    m.role === "assistant" ? (
-                      <div className="markdown-body">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {m.content}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      m.content
-                    )
-                  ) : showPlaceholder ? (
-                    <span
-                      className="typing-indicator"
-                      aria-label="生成中"
-                      role="status"
-                    >
-                      <span />
-                      <span />
-                      <span />
-                    </span>
-                  ) : null}
-                </div>
-              )}
-              {m.toolEvents && m.toolEvents.length > 0 && (
-                <div className="chat-tool-events">
-                  {m.toolEvents.map((te, j) => (
-                    <div className="tool-event-block" key={j}>
-                      <div className="tool-event-name">[{te.name}]</div>
-                      <ToolEventView event={te} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {messages.map((m, i) => (
+          <ChatMessage
+            key={m.id}
+            message={m}
+            showPlaceholder={
+              streaming &&
+              i === messages.length - 1 &&
+              m.role === "assistant" &&
+              !m.content &&
+              (m.toolEvents?.length ?? 0) === 0
+            }
+          />
+        ))}
       </div>
 
       {!isAtBottom && messages.length > 0 && (
@@ -203,12 +162,7 @@ export function ChatUI() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              !e.shiftKey &&
-              !e.nativeEvent.isComposing &&
-              e.keyCode !== 229
-            ) {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
               e.preventDefault();
               void send();
             }
@@ -225,4 +179,69 @@ export function ChatUI() {
       </form>
     </div>
   );
+}
+
+const ChatMessage = memo(function ChatMessage({
+  message,
+  showPlaceholder,
+}: {
+  message: Message;
+  showPlaceholder: boolean;
+}) {
+  const hasContent = !!message.content;
+  const toolEvents = message.toolEvents ?? [];
+
+  return (
+    <div className={`chat-bubble chat-${message.role}`}>
+      <div className="chat-role">{message.role === "user" ? "あなた" : "AI"}</div>
+      {(hasContent || showPlaceholder) && (
+        <div className="chat-content">
+          <MessageBody
+            role={message.role}
+            content={message.content}
+            showPlaceholder={showPlaceholder}
+          />
+        </div>
+      )}
+      {toolEvents.length > 0 && (
+        <div className="chat-tool-events">
+          {toolEvents.map((te, j) => (
+            <div className="tool-event-block" key={j}>
+              <div className="tool-event-name">[{te.name}]</div>
+              <ToolEventView event={te} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+function MessageBody({
+  role,
+  content,
+  showPlaceholder,
+}: {
+  role: Role;
+  content: string;
+  showPlaceholder: boolean;
+}) {
+  if (!content) {
+    if (!showPlaceholder) return null;
+    return (
+      <span className="typing-indicator" aria-label="生成中" role="status">
+        <span />
+        <span />
+        <span />
+      </span>
+    );
+  }
+  if (role === "assistant") {
+    return (
+      <div className="markdown-body">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      </div>
+    );
+  }
+  return <>{content}</>;
 }
